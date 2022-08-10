@@ -31,4 +31,4 @@ def _register_policies():
     )
 
 
-_register_policies()
+# _register_policies()
