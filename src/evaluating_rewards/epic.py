@@ -560,10 +560,10 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
 
 if __name__ == '__main__':
     env_name = "FeedingSawyer-v1"
-    policy_path = "/Users/jeremytien/Documents/BAIR Research/assistive-gym/trained_models/ppo/FeedingSawyer-v1/checkpoint_521/checkpoint-521"
+    policy_path = "/home/jeremy/assistive-gym/trained_models/seed1/ppo/FeedingSawyer-v1/checkpoint_521/checkpoint-521"
     seed = 0
-    num_demos = 6
-    noise_level = 0.4
+    num_demos = 5
+    noise_level = 0.0
     augmented = False
     fully_observable = False
     pure_fully_observable = True
@@ -571,7 +571,7 @@ if __name__ == '__main__':
     new_pure_fully_observable = False
     state_action = False
     n_samples = 512  # number of samples to take final expectation over
-    n_mean_samples = 512  # number of samples to use to canonicalize potential
+    n_mean_samples = 1000  # number of samples to use to canonicalize potential
     hidden_dims = (128, 64)
     model_kinds = [
         "learned_proper",
@@ -579,8 +579,8 @@ if __name__ == '__main__':
         "ground_truth"
     ]
     model_paths = [
-        "/Users/jeremytien/Documents/BAIR Research/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed0.params",
-        "/Users/jeremytien/Documents/BAIR Research/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed2.params",
+        "/home/jeremy/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed0.params",
+        "/home/jeremy/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed2.params",
         "placeholder"
     ]
 
@@ -637,7 +637,9 @@ if __name__ == '__main__':
             # You can also specify the discount rate and the type of norm,
             # but defaults are fine for most use cases.
         )
-
+    print("deshaped_rew['learned_proper']:", deshaped_rew['learned_proper'].shape)
+    print("deshaped_rew['learned_hacking']:", deshaped_rew['learned_hacking'].shape)
+    print("deshaped_rew['ground_truth']:", deshaped_rew['ground_truth'].shape)
     # Now, let's compute the Pearson distance between these canonicalized rewards.
     # The canonicalized rewards are quantized to `n_samples` granularity, so we can
     # then compute the Pearson distance on this (finite approximation) exactly.
