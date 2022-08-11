@@ -588,10 +588,11 @@ if __name__ == '__main__':
     with sess.as_default():
         tf.set_random_seed(seed)
 
+    DEVICE = torch.device(determine_default_torch_device(not torch.cuda.is_available()))
+
     models = {}
     for i, kind in enumerate(model_kinds):
         if kind != "ground_truth":
-            DEVICE = torch.device(determine_default_torch_device(not torch.cuda.is_available()))
             reward_net = Net("feeding", hidden_dims=hidden_dims, augmented=augmented,
                                   new_pure_fully_observable=new_pure_fully_observable,
                                   new_fully_observable=new_fully_observable,
