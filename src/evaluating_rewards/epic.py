@@ -645,6 +645,8 @@ if __name__ == '__main__':
     # The canonicalized rewards are quantized to `n_samples` granularity, so we can
     # then compute the Pearson distance on this (finite approximation) exactly.
     epic_distance = util.cross_distance(deshaped_rew, deshaped_rew, tabular.pearson_distance, parallelism=1)
+    print("pearson_distance(deshaped_rew['ground_truth'], deshaped_rew['learned_hacking'])", tabular.pearson_distance(deshaped_rew['ground_truth'], deshaped_rew['learned_hacking']))
+    print("pearson_distance(deshaped_rew['learned_hacking'], deshaped_rew['ground_truth'])", tabular.pearson_distance(deshaped_rew['learned_hacking'], deshaped_rew['ground_truth']))
 
     print("EPIC DISTANCE:", epic_distance)
     epic_df = pd.Series(epic_distance).unstack()
