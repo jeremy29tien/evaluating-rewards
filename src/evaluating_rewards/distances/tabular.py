@@ -183,7 +183,7 @@ def pearson_distance(
         Returns the square root of 1 minus rho.
     """
     if dist is None:
-        dist = np.ones_like(rewa) / np.product(rewa.shape)
+        dist = np.ones_like(rewa) / np.prod(rewa.shape)
     _check_dist(dist)
     assert rewa.shape == dist.shape
     assert rewa.shape == rewb.shape
@@ -197,14 +197,14 @@ def pearson_distance(
     cov = np.average(rewa * rewb, weights=dist)
     assert cov == np.average(rewb * rewa, weights=dist)
     print("dist from a:", dist)
-    print("dist from b:", np.ones_like(rewb) / np.product(rewb.shape))
+    print("dist from b:", np.ones_like(rewb) / np.prod(rewb.shape))
     dista = dist
-    distb = np.ones_like(rewb) / np.product(rewb.shape)
+    distb = np.ones_like(rewb) / np.prod(rewb.shape)
     print(np.where(dista != distb, True, False))
     print(type(dista[0]))
     print(type(distb[0]))
     print(dista[0] == distb[0])
-    assert np.array_equal(dist, np.ones_like(rewb) / np.product(rewb.shape)) is True
+    assert np.array_equal(dist, np.ones_like(rewb) / np.prod(rewb.shape)) is True
     corr = cov / (np.sqrt(vara) * np.sqrt(varb))
     assert corr == cov / (np.sqrt(varb) * np.sqrt(vara))
     corr = min(corr, 1.0)  # floating point error sometimes rounds above 1.0
