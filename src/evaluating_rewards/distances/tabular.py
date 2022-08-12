@@ -201,8 +201,8 @@ def pearson_distance(
     dista = dist
     distb = np.ones_like(rewb) / np.product(rewb.shape)
     print(np.where(dista != distb, True, False))
-    print(dista[0])
-    print(distb[0])
+    print(type(dista[0]))
+    print(type(distb[0]))
     print(dista[0] == distb[0])
     assert np.array_equal(dist, np.ones_like(rewb) / np.product(rewb.shape)) is True
     corr = cov / (np.sqrt(vara) * np.sqrt(varb))
