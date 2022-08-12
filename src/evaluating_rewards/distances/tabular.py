@@ -188,6 +188,9 @@ def pearson_distance(
     assert rewa.shape == dist.shape
     assert rewa.shape == rewb.shape
 
+    rewa = rewa.astype(np.float32)
+    rewb = rewb.astype(np.float32)
+
     dist = dist.flatten()
     rewa = _center(rewa.flatten(), dist)
     rewb = _center(rewb.flatten(), dist)
