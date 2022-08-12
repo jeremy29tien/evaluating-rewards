@@ -198,15 +198,7 @@ def pearson_distance(
     vara = np.average(np.square(rewa), weights=dist)
     varb = np.average(np.square(rewb), weights=dist)
     cov = np.average(rewa * rewb, weights=dist)
-    assert cov == np.average(rewb * rewa, weights=dist)
-    print("dist from a:", dist)
-    print("dist from b:", np.ones_like(rewb) / np.prod(rewb.shape))
-    dista = dist
-    distb = np.ones_like(rewb) / np.prod(rewb.shape)
-    print(np.where(dista != distb, True, False))
-    print(type(dista[0]))
-    print(type(distb[0]))
-    print(dista[0] == distb[0])
+    assert cov == np.average(rewb * rewa, weights=np.ones_like(rewb) / np.prod(rewb.shape))
     assert np.array_equal(dist, np.ones_like(rewb) / np.prod(rewb.shape)) is True
     corr = cov / (np.sqrt(vara) * np.sqrt(varb))
     assert corr == cov / (np.sqrt(varb) * np.sqrt(vara))
