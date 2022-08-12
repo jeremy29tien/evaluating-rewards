@@ -195,7 +195,9 @@ def pearson_distance(
     vara = np.average(np.square(rewa), weights=dist)
     varb = np.average(np.square(rewb), weights=dist)
     cov = np.average(rewa * rewb, weights=dist)
+    assert cov == np.average(rewb * rewa, weights=(np.ones_like(rewb) / np.product(rewb.shape)))
     corr = cov / (np.sqrt(vara) * np.sqrt(varb))
+    assert corr == cov / (np.sqrt(varb) * np.sqrt(vara))
     corr = min(corr, 1.0)  # floating point error sometimes rounds above 1.0
 
     return np.sqrt(0.5 * (1 - corr))
