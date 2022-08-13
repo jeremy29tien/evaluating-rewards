@@ -201,10 +201,6 @@ def pearson_distance(
     assert cov == np.average(rewb * rewa, weights=np.ones_like(rewb) / np.prod(rewb.shape))
     assert np.array_equal(dist, np.ones_like(rewb) / np.prod(rewb.shape)) is True
     corr = cov / (np.sqrt(vara) * np.sqrt(varb))
-    print(corr)
-    print(cov / (np.sqrt(varb) * np.sqrt(vara)))
-    print("np.sqrt(vara):", np.sqrt(vara))
-    print("np.sqrt(varb):", np.sqrt(varb))
     assert corr == cov / (np.sqrt(varb) * np.sqrt(vara))
     corr = min(corr, 1.0)  # floating point error sometimes rounds above 1.0
 
