@@ -562,8 +562,8 @@ if __name__ == '__main__':
     env_name = "FeedingSawyer-v1"
     policy_path = "/home/jeremy/assistive-gym/trained_models/seed1/ppo/FeedingSawyer-v1/checkpoint_521/checkpoint-521"
     seed = 0
-    num_demos = 5
-    noise_level = 0.0
+    num_demos = 10
+    noise_level = 0.5
     augmented = False
     fully_observable = False
     pure_fully_observable = True
