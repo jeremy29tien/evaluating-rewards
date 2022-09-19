@@ -31,7 +31,24 @@ K = TypeVar("K")
 DEVICE = None
 
 
+# We will always assume that next_obs is in the structure given by get_transition:
+# that is, it will contain the features from the raw obs AND the added features.
+def gt_reward_reacher(action, next_obs):
+    raise Exception("NOT IMPLEMENTED.")
+
+
+# We will always assume that next_obs is in the structure given by get_transition:
+# that is, it will contain the features from the raw obs AND the added features.
 def gt_reward_feeding(action, next_obs):
+    distance = next_obs[7:10]
+    spoon_force_on_human = next_obs[24]
+    foods_in_mouth = next_obs[25]
+    foods_on_floor = next_obs[26]
+    foods_hit_human = next_obs[27]
+    sum_food_mouth_velocities = next_obs[28]
+    prev_spoon_pos_real = next_obs[29:32]
+    robot_force_on_human = next_obs[32]
+
     ### GT REWARD WEIGHTS ###
     distance_weight = 1.0
     action_weight = 0.01
@@ -44,16 +61,6 @@ def gt_reward_feeding(action, next_obs):
     food_velocities_weight = 1.0
     dressing_force_weight = 0.01
     high_pressures_weight = 0.01
-
-    # TODO: correct this hard-coded feature configuration
-    distance = next_obs[0:3]
-    spoon_force_on_human = next_obs[3]
-    foods_in_mouth = next_obs[4]
-    foods_on_floor = next_obs[5]
-    foods_hit_human = next_obs[6]
-    sum_food_mouth_velocities = next_obs[7]
-    prev_spoon_pos_real = next_obs[8:11]
-    robot_force_on_human = next_obs[11]
 
     total_force_on_human = spoon_force_on_human + robot_force_on_human
 
@@ -85,8 +92,9 @@ def gt_reward_feeding(action, next_obs):
     return reward
 
 
-def gt_reward_scratchitch():
-    pass
+def gt_reward_scratchitch(action, next_obs):
+    raise Exception("NOT IMPLEMENTED.")
+
 
 class Net(nn.Module):
     def __init__(self, env, hidden_dims=(128,64), feature_spec='', norm=False):
@@ -255,7 +263,13 @@ def evaluate_models(
 
     gt_rewards = []
     for action, next_obs in zip(actions, next_observations):
-        gt_reward = gt_reward_feeding(action, next_obs)
+        if env_name == "Reacher-v2":
+            gt_reward = gt_reward_reacher(action, next_obs)
+        if env_name == "FeedingSawyer-v1":
+            gt_reward = gt_reward_feeding(action, next_obs)
+        if env_name == "ScratchItchJaco-v1":
+            gt_reward = gt_reward_scratchitch(action, next_obs)
+
         gt_rewards.append(gt_reward)
     output["ground_truth"] = np.array(gt_rewards)
     return output
@@ -733,6 +747,8 @@ if __name__ == '__main__':
             batch=batch,
             next_obs_samples=next_obs_samples,
             act_samples=act_samples,
+            proper_features=proper_features,
+            hacking_features=hacking_features,
             # You can also specify the discount rate and the type of norm,
             # but defaults are fine for most use cases.
         )
