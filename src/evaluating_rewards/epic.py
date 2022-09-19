@@ -1,3 +1,4 @@
+import argparse
 import dataclasses
 import glob
 import importlib
@@ -88,44 +89,46 @@ def gt_reward_scratchitch():
     pass
 
 class Net(nn.Module):
-    def __init__(self, env, hidden_dims=(128,64), augmented=False, fully_observable=False, pure_fully_observable=False, new_fully_observable=False, new_pure_fully_observable=False, num_rawfeatures=25, state_action=False, norm=False):
+    def __init__(self, env, hidden_dims=(128,64), feature_spec='', norm=False):
         super().__init__()
 
-        if new_pure_fully_observable:
-            if env == "feeding":
-                raise Exception("NOT IMPLEMENTED.")
-            elif env == "scratch_itch":
+        if feature_spec == "new_pure_fully_observable":
+            if env == "ScratchItchJaco-v1":
                 input_dim = 20
-        if new_fully_observable:
-            if env == "feeding":
+            else:
                 raise Exception("NOT IMPLEMENTED.")
-            elif env == "scratch_itch":
+        elif feature_spec == "new_fully_observable":
+            if env == "ScratchItchJaco-v1":
                 input_dim = 43
-        elif pure_fully_observable:
-            if env == "feeding":
+            else:
+                raise Exception("NOT IMPLEMENTED.")
+        elif feature_spec == "pure_fully_observable":
+            if env == "Reacher-v2":
+                input_dim = 5
+            if env == "FeedingSawyer-v1":
                 input_dim = 19
-            elif env == "scratch_itch":
+            if env == "ScratchItchJaco-v1":
                 input_dim = 19
-        elif fully_observable:
-            if env == "feeding":
+        elif feature_spec == "fully_observable":
+            if env == "Reacher-v2":
+                input_dim = 13
+            if env == "FeedingSawyer-v1":
                 input_dim = 40
-            elif env == "scratch_itch":
+            if env == "ScratchItchJaco-v1":
                 input_dim = 42
-        elif augmented and state_action:
-            # Feeding only
-            input_dim = 35
-        elif augmented:
-            if env == "feeding":
-                input_dim = num_rawfeatures + 3
-            elif env == "scratch_itch":
-                input_dim = num_rawfeatures + 2
-        elif state_action:
-            # Feeding only
-            input_dim = 32
+        elif feature_spec == "state_action":
+            if env == "Reacher-v2":
+                input_dim = 13
+            if env == "FeedingSawyer-v1":
+                input_dim = 32
+            if env == "ScratchItchJaco-v1":
+                raise Exception("NOT IMPLEMENTED.")
         else:
-            if env == "feeding":
+            if env == "Reacher-v2":
+                input_dim = 11
+            if env == "FeedingSawyer-v1":
                 input_dim = 25
-            elif env == "scratch_itch":
+            if env == "ScratchItchJaco-v1":
                 input_dim = 30
 
         self.normalize = norm
@@ -160,7 +163,9 @@ class Net(nn.Module):
 
 def evaluate_models(
     models: Mapping[K, Net],
-    batch: types.Transitions
+    batch: types.Transitions,
+    proper_features: str = '',
+    hacking_features: str = ''
 ) -> Mapping[K, np.ndarray]:
     # Call the cum_return() function in Net, but do it for just one observation/observation-action pair
     # Do this for each obs-action-nextobs set in the batch
@@ -168,18 +173,88 @@ def evaluate_models(
 
     observations = batch.obs
     print("observations:", observations.shape)
-    # TODO: Change this depending on the type of feature space we are using
-    obs_1 = observations[:, 0:4]
-    print("obs_1:", obs_1.shape)
-    obs_2 = observations[:, 4:]
-    print("obs_2:", obs_2.shape)
     actions = batch.acts
     print("actions:", actions.shape)
     next_observations = batch.next_obs
-    input = np.concatenate((obs_1, actions, obs_2), axis=-1)
-    input = torch.from_numpy(input).float().to(DEVICE)
+    output = {}
 
-    output = {k: torch.flatten(m.forward(input)).cpu().detach().numpy() for k, m in models.items() if k != "ground_truth"}
+    for k, m in models.items():
+        if k == "learned_proper":
+            feature_spec = proper_features
+        elif k == "learned_hacking":
+            feature_spec = hacking_features
+        else:
+            continue
+
+        if feature_spec == "new_pure_fully_observable":
+            if env_name == "ScratchItchJaco-v1":
+                input_dim = 20
+                raise Exception("NOT IMPLEMENTED YET.")
+            else:
+                raise Exception("NOT IMPLEMENTED.")
+        elif feature_spec == "new_fully_observable":
+            if env_name == "ScratchItchJaco-v1":
+                input_dim = 43
+                raise Exception("NOT IMPLEMENTED YET.")
+            else:
+                raise Exception("NOT IMPLEMENTED.")
+
+        elif feature_spec == "pure_fully_observable":
+            if env_name == "Reacher-v2":
+                input_dim = 5
+                obs = observations[:, 8:11]
+                input = np.concatenate((obs, actions), axis=-1)
+            if env_name == "FeedingSawyer-v1":
+                input_dim = 19
+                obs = np.concatenate((observations[:, 7:10], observations[:, 24:25]))
+                added_obs = observations[:, 25:]
+                input = np.concatenate((obs, actions, added_obs))
+            if env_name == "ScratchItchJaco-v1":
+                input_dim = 19
+                obs = np.concatenate((observations[:, 0:3], observations[:, 7:10], observations[:, 29:30]))
+                added_obs = observations[:, 30:35]
+                input = np.concatenate((obs, actions, added_obs))
+
+        elif feature_spec == "fully_observable":
+            if env_name == "Reacher-v2":
+                input_dim = 13
+                input = np.concatenate((observations, actions))
+            if env_name == "FeedingSawyer-v1":
+                input_dim = 40
+                obs = observations[:, :25]
+                added_obs = observations[:, 25:]
+                input = np.concatenate((obs, actions, added_obs))
+            if env_name == "ScratchItchJaco-v1":
+                input_dim = 42
+                obs = observations[:, :30]
+                added_obs = observations[:, 30:35]
+                input = np.concatenate((obs, actions, added_obs))
+
+        elif feature_spec == "state_action":
+            if env_name == "Reacher-v2":
+                input_dim = 13
+                input = np.concatenate((observations, actions))
+            if env_name == "FeedingSawyer-v1":
+                input_dim = 32
+                obs = observations[:, :25]
+                input = np.concatenate((obs, actions))
+            if env_name == "ScratchItchJaco-v1":
+                raise Exception("NOT IMPLEMENTED.")
+        else:
+            if env_name == "Reacher-v2":
+                input_dim = 11
+                raise Exception("NOT IMPLEMENTED.")
+            if env_name == "FeedingSawyer-v1":
+                input_dim = 25
+                raise Exception("NOT IMPLEMENTED.")
+            if env_name == "ScratchItchJaco-v1":
+                input_dim = 30
+                raise Exception("NOT IMPLEMENTED.")
+
+        input = torch.from_numpy(input).float().to(DEVICE)
+        output[k] = torch.flatten(m.forward(input)).cpu().detach().numpy()
+
+    # output = {k: torch.flatten(m.forward(input)).cpu().detach().numpy() for k, m in models.items() if k != "ground_truth"}
 
     gt_rewards = []
     for action, next_obs in zip(actions, next_observations):
@@ -189,12 +264,15 @@ def evaluate_models(
     return output
 
 
+# NOTE: next_obs_samples is only used here, in sample_mean_rews, which is used to calculate the mean rewards over smth.
 def sample_mean_rews(
     models: Mapping[K, Net],
     mean_from_obs: np.ndarray,
     act_samples: np.ndarray,
     next_obs_samples: np.ndarray,
     batch_size: int = 2 ** 28,
+    proper_features: str = '',
+    hacking_features: str = ''
 ) -> Mapping[K, np.ndarray]:
     """
     Estimates the mean reward from observations `mean_from_obs` using given samples.
@@ -245,7 +323,7 @@ def sample_mean_rews(
             infos=None,
         )
         # base.evaluate_models returns a dictionary of model returns on the batch
-        rews = evaluate_models(models, batch)
+        rews = evaluate_models(models, batch, proper_features=proper_features, hacking_features=hacking_features)
         print("length of obs", len(obs))
         rews = {k: v.reshape(len(obs), -1) for k, v in rews.items()}
         # print("rews:", rews)
@@ -266,6 +344,8 @@ def sample_canon_shaping(
     next_obs_samples: datasets.SampleDist,
     discount: float = 1.0,
     p: int = 1,
+    proper_features: str = '',
+    hacking_features: str = ''
 ) -> Mapping[K, np.ndarray]:
     r"""
     Canonicalize `batch` for `models` using a sample-based estimate of mean reward.
@@ -316,7 +396,7 @@ def sample_canon_shaping(
     # SOMEDAY(adam): add explicit support for finite-horizon?
     batch = dataclasses.replace(batch, dones=np.zeros_like(batch.dones))
     # base.evaluate_models returns a dictionary of model returns on the batch
-    raw_rew = evaluate_models(models, batch)
+    raw_rew = evaluate_models(models, batch, proper_features=proper_features, hacking_features=hacking_features)
     # print("raw_rew:", raw_rew)
 
     all_obs = np.concatenate((next_obs_samples, batch.obs, batch.next_obs), axis=0)
@@ -421,7 +501,8 @@ def make_env(env_name, coop=False, seed=1001, reward_net_path=None, indvar=None)
     env.seed(seed)
     return env
 
-def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augmented, fully_observable, pure_fully_observable, new_fully_observable, new_pure_fully_observable, state_action):
+# Design decision: the batch will have the `fully_observable` feature spec -- it will contain all the possible information.
+def get_transitions(env_name, policy_path, seed, num_demos, noise_level):
     ray.init(num_cpus=multiprocessing.cpu_count(), ignore_reinit_error=True, log_to_driver=False)
     np.random.seed(seed)
 
@@ -429,7 +510,10 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
     env = make_env(env_name, seed=seed)
 
     # Load pretrained policy from file
-    algo = 'ppo'
+    if env_name == "Reacher-v2":
+        algo = 'sac'
+    else:
+        algo = 'ppo'
 
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop=False, seed=seed)
 
@@ -453,12 +537,14 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
                 # Compute the next action using the trained policy
                 action = test_agent.compute_action(observation)
 
-            # Collect the data
-            # print("Observation:", observation)
-            # print("Action:", action)
+            # Reacher
+            if env_name == "Reacher-v2":
+                distance = np.linalg.norm(observation[8:11])
+                action_norm = np.linalg.norm(action)
+                added_features = np.empty(shape=(0, ))
+                # pure_obs = np.array(observation[8:11])
 
             # FeedingSawyer
-            # augmented (privileged) features: spoon-mouth distance, amount of food particles in mouth, amount of food particles on the floor
             # fully-observable: add previous end effector position, robot force on human, food information
             if env_name == "FeedingSawyer-v1":
                 distance = np.linalg.norm(observation[7:10])
@@ -476,12 +562,11 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
                     sum_food_mouth_velocities = info['sum_food_mouth_velocities']
                     prev_spoon_pos_real = info['prev_spoon_pos_real']
                     robot_force_on_human = info['robot_force_on_human']
-                privileged_features = np.array([distance, foods_in_mouth, foods_on_floor])
-                fo_features = np.concatenate(([foods_in_mouth, foods_on_floor, foods_hit_human,
+                added_features = np.concatenate(([foods_in_mouth, foods_on_floor, foods_hit_human,
                                                sum_food_mouth_velocities], prev_spoon_pos_real, [robot_force_on_human]))
-                pure_obs = np.concatenate((observation[7:10], observation[24:25]))
+                # pure_obs = np.concatenate((observation[7:10], observation[24:25]))
 
-            # ScratchItchJaco privileged features: end effector - target distance, total force at target
+            # ScratchItchJaco
             if env_name == "ScratchItchJaco-v1":
                 distance = np.linalg.norm(observation[7:10])
                 if info is None:
@@ -496,37 +581,11 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
                     robot_force_on_human = info['robot_force_on_human']
                     prev_tool_force = info['prev_tool_force']
                     scratched = info['scratched']
-                privileged_features = np.array([distance, tool_force_at_target])
-                fo_features = np.concatenate((prev_tool_pos_real, [robot_force_on_human, prev_tool_force]))
-                new_fo_features = np.concatenate(
-                    (prev_tool_pos_real, [robot_force_on_human, prev_tool_force, scratched]))
-                pure_obs = np.concatenate((observation[0:3], observation[7:10], observation[29:30]))
+                added_features = np.concatenate((prev_tool_pos_real, [robot_force_on_human, prev_tool_force, scratched]))
+                # pure_obs = np.concatenate((observation[0:3], observation[7:10], observation[29:30]))
 
-            if new_pure_fully_observable:
-                data = np.concatenate((pure_obs, action, new_fo_features))
-                obses.append(np.concatenate((pure_obs, new_fo_features)))
-            elif new_fully_observable:
-                data = np.concatenate((observation, action, new_fo_features))
-                obses.append(np.concatenate((observation, new_fo_features)))
-            elif pure_fully_observable:
-                data = np.concatenate((pure_obs, action, fo_features))
-                obses.append(np.concatenate((pure_obs, fo_features)))
-            elif fully_observable:
-                data = np.concatenate((observation, action, fo_features))
-                obses.append(np.concatenate((observation, fo_features)))
-            elif augmented and state_action:
-                data = np.concatenate((observation, action, privileged_features))
-                obses.append(np.concatenate((observation, privileged_features)))
-            elif augmented:
-                data = np.concatenate((observation, privileged_features))
-                obses.append(np.concatenate((observation, privileged_features)))
-            elif state_action:
-                data = np.concatenate((observation, action))
-                obses.append(observation)
-            else:
-                data = observation
-                obses.append(observation)
-
+            data = np.concatenate((observation, added_features, action))
+            obses.append(np.concatenate((observation, added_features)))
             acts.append(action)
             if info is not None:
                 next_obses.append(obses[-1])
@@ -559,28 +618,58 @@ def get_transitions(env_name, policy_path, seed, num_demos, noise_level, augment
 
 
 if __name__ == '__main__':
-    env_name = "FeedingSawyer-v1"
-    policy_path = "/home/jeremy/assistive-gym/trained_models/seed1/ppo/FeedingSawyer-v1/checkpoint_521/checkpoint-521"
-    seed = 0
-    num_demos = 10
-    noise_level = 0.5
-    augmented = False
-    fully_observable = False
-    pure_fully_observable = True
-    new_fully_observable = False
-    new_pure_fully_observable = False
-    state_action = False
+    parser = argparse.ArgumentParser(description='RL for Assistive Gym')
+    parser.add_argument('--env', default='FeedingSawyer-v1', help='Environment to train on (default: ScratchItchJaco-v0)')
+    parser.add_argument('--seed', type=int, default=1, help='Random seed (default: 1)')
+    parser.add_argument('--policy-path', default='/home/jeremy/assistive-gym/trained_models/seed1/ppo/FeedingSawyer-v1/checkpoint_521/checkpoint-521', help='Path to EXPERT policy (for collecting states).')
+    parser.add_argument('--num_demos', type=int, default=1, help='')
+    parser.add_argument('--noise_level', type=float, default=0.5, help='')
+
+    parser.add_argument('--proper-reward-net-path', default=None, help='Path name to trained reward network.')
+    parser.add_argument('--hacking-reward-net-path', default=None, help='Path name to trained reward network.')
+    parser.add_argument('--proper-hidden-dims', default=0, nargs='+', type=int, help="dimensions of hidden layers")
+    parser.add_argument('--hacking-hidden-dims', default=0, nargs='+', type=int, help="dimensions of hidden layers")
+    parser.add_argument('--proper-features', default=None, help='Feature space specification for the proper reward net.')
+    parser.add_argument('--hacking-features', default=None, help='Feature space specification for the hacking reward net.')
+
+    # parser.add_argument('--state_action', dest='state_action', default=False, action='store_true', help="whether data consists of state-action pairs rather that just states")  # NOTE: type=bool doesn't work, value is still true.
+    # parser.add_argument('--augmented', dest='augmented', default=False, action='store_true', help="whether data consists of states + linear features pairs rather that just states")  # NOTE: type=bool doesn't work, value is still true.
+    # parser.add_argument('--fully_observable', dest='fully_observable', default=False, action='store_true', help="")
+    # parser.add_argument('--pure_fully_observable', dest='pure_fully_observable', default=False, action='store_true', help="")
+    # parser.add_argument('--new_pure_fully_observable', dest='new_pure_fully_observable', default=False, action='store_true', help="")
+    # parser.add_argument('--new_fully_observable', dest='new_fully_observable', default=False, action='store_true', help="")
+    args = parser.parse_args()
+
+    env_name = args.env
+    policy_path = args.policy_path
+    seed = args.seed
+    num_demos = args.num_demos
+    noise_level = args.noise_level
     n_samples = 512  # number of samples to take final expectation over
     n_mean_samples = 1000  # number of samples to use to canonicalize potential
-    hidden_dims = (128, 64)
+
+    proper_reward_net_path = args.proper_reward_net_path
+    hacking_reward_net_path = args.hacking_reward_net_path
+    proper_hidden_dims = args.proper_hidden_dims
+    hacking_hidden_dims = args.hacking_hidden_dims
+    proper_features = args.proper_features
+    hacking_features = args.hacking_features
+    # augmented = False
+    # fully_observable = False
+    # pure_fully_observable = True
+    # new_fully_observable = False
+    # new_pure_fully_observable = False
+    # state_action = False
+    # hidden_dims = (128, 64)
+
     model_kinds = [
         "learned_proper",
         "learned_hacking",
         "ground_truth"
     ]
     model_paths = [
-        "/home/jeremy/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed0.params",
-        "/home/jeremy/assistive-gym/trex/models/feeding/vanilla/pure_fully_observable/324demos_allpairs_hdim128-64_100epochs_10patience_0001lr_000001weightdecay_seed2.params",
+        args.proper_reward_net_path,
+        args.hacking_reward_net_path,
         "placeholder"
     ]
 
@@ -592,13 +681,14 @@ if __name__ == '__main__':
 
     models = {}
     for i, kind in enumerate(model_kinds):
-        if kind != "ground_truth":
-            reward_net = Net("feeding", hidden_dims=hidden_dims, augmented=augmented,
-                                  new_pure_fully_observable=new_pure_fully_observable,
-                                  new_fully_observable=new_fully_observable,
-                                  pure_fully_observable=pure_fully_observable,
-                                  fully_observable=fully_observable,
-                                  state_action=state_action)
+        if kind == "learned_proper":
+            reward_net = Net(env_name, hidden_dims=proper_hidden_dims, feature_spec=proper_features)
+            reward_net.load_state_dict(torch.load(model_paths[i], map_location=torch.device('cpu')))
+            reward_net.to(DEVICE)
+            models[kind] = reward_net
+
+        elif kind == "learned_hacking":
+            reward_net = Net(env_name, hidden_dims=hacking_hidden_dims, feature_spec=hacking_features)
             reward_net.load_state_dict(torch.load(model_paths[i], map_location=torch.device('cpu')))
             reward_net.to(DEVICE)
             models[kind] = reward_net
@@ -606,7 +696,7 @@ if __name__ == '__main__':
             models[kind] = None
 
     # Visitation distribution (obs,act,next_obs)
-    batch = get_transitions(env_name, policy_path, seed, num_demos, noise_level, augmented, fully_observable, pure_fully_observable, new_fully_observable, new_pure_fully_observable, state_action)
+    batch = get_transitions(env_name, policy_path, seed, num_demos, noise_level)  # Design decision: the batch will have the `fully_observable` feature spec -- it will contain all the possible information.
     # print("batch:", batch)
 
     # Visitation distribution (obs,act,next_obs) is IID sampled from spaces
@@ -622,8 +712,19 @@ if __name__ == '__main__':
     env = make_env(env_name, seed=seed)
     with datasets.sample_dist_from_space(env.observation_space, seed=seed + 1) as obs_dist:
         next_obs_samples = obs_dist(n_mean_samples)
-        next_obs_samples = np.concatenate((next_obs_samples[:, 7:10], next_obs_samples[:, 24:25]), axis=-1)  # TODO: need to change this hard-coded feature configuration
-        next_obs_samples = np.concatenate((next_obs_samples, np.zeros((n_mean_samples, 8))), axis=-1)  # TODO: need to change this hard-coded 8
+        if env_name == "Reacher-v2":
+            # Reacher has 0 added features that weren't originally part of the obs space.
+            pass
+        if env_name == "FeedingSawyer-v1":
+            # Feeding has 8 added features that weren't originally part of the obs space.
+            next_obs_samples = np.concatenate((next_obs_samples, np.zeros((n_mean_samples, 8))), axis=-1)
+        if env_name == "ScratchItchJaco-v1":
+            # Itch has 6 added features that weren't originally part of the obs space.
+            next_obs_samples = np.concatenate((next_obs_samples, np.zeros((n_mean_samples, 6))), axis=-1)
+
+        # FIGURE OUT -- is making all our fully-observable features 0 problematic?
+        # Answer: It shouldn't be; this is what we do when we collect data as well (at the initial step).
+
     with datasets.sample_dist_from_space(env.action_space, seed=seed + 2) as act_dist:
         act_samples = act_dist(n_mean_samples)
 
