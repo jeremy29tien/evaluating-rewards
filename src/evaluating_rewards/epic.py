@@ -213,36 +213,36 @@ def evaluate_models(
                 input = np.concatenate((obs, actions), axis=-1)
             if env_name == "FeedingSawyer-v1":
                 input_dim = 19
-                obs = np.concatenate((observations[:, 7:10], observations[:, 24:25]))
+                obs = np.concatenate((observations[:, 7:10], observations[:, 24:25]), axis=-1)
                 added_obs = observations[:, 25:]
-                input = np.concatenate((obs, actions, added_obs))
+                input = np.concatenate((obs, actions, added_obs), axis=-1)
             if env_name == "ScratchItchJaco-v1":
                 input_dim = 19
-                obs = np.concatenate((observations[:, 0:3], observations[:, 7:10], observations[:, 29:30]))
+                obs = np.concatenate((observations[:, 0:3], observations[:, 7:10], observations[:, 29:30]), axis=-1)
                 added_obs = observations[:, 30:35]
-                input = np.concatenate((obs, actions, added_obs))
+                input = np.concatenate((obs, actions, added_obs), axis=-1)
         elif feature_spec == "fully_observable":
             if env_name == "Reacher-v2":
                 input_dim = 13
-                input = np.concatenate((observations, actions))
+                input = np.concatenate((observations, actions), axis=-1)
             if env_name == "FeedingSawyer-v1":
                 input_dim = 40
                 obs = observations[:, :25]
                 added_obs = observations[:, 25:]
-                input = np.concatenate((obs, actions, added_obs))
+                input = np.concatenate((obs, actions, added_obs), axis=-1)
             if env_name == "ScratchItchJaco-v1":
                 input_dim = 42
                 obs = observations[:, :30]
                 added_obs = observations[:, 30:35]
-                input = np.concatenate((obs, actions, added_obs))
+                input = np.concatenate((obs, actions, added_obs), axis=-1)
         elif feature_spec == "state_action":
             if env_name == "Reacher-v2":
                 input_dim = 13
-                input = np.concatenate((observations, actions))
+                input = np.concatenate((observations, actions), axis=-1)
             if env_name == "FeedingSawyer-v1":
                 input_dim = 32
                 obs = observations[:, :25]
-                input = np.concatenate((obs, actions))
+                input = np.concatenate((obs, actions), axis=-1)
             if env_name == "ScratchItchJaco-v1":
                 raise Exception("NOT IMPLEMENTED.")
         else:
