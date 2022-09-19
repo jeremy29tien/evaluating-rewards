@@ -185,7 +185,7 @@ def evaluate_models(
             feature_spec = hacking_features
         else:
             continue
-
+        print("feature_spec:", feature_spec)
         if feature_spec == "new_pure_fully_observable":
             if env_name == "ScratchItchJaco-v1":
                 input_dim = 20
@@ -198,7 +198,6 @@ def evaluate_models(
                 raise Exception("NOT IMPLEMENTED YET.")
             else:
                 raise Exception("NOT IMPLEMENTED.")
-
         elif feature_spec == "pure_fully_observable":
             if env_name == "Reacher-v2":
                 input_dim = 5
@@ -214,7 +213,6 @@ def evaluate_models(
                 obs = np.concatenate((observations[:, 0:3], observations[:, 7:10], observations[:, 29:30]))
                 added_obs = observations[:, 30:35]
                 input = np.concatenate((obs, actions, added_obs))
-
         elif feature_spec == "fully_observable":
             if env_name == "Reacher-v2":
                 input_dim = 13
@@ -229,7 +227,6 @@ def evaluate_models(
                 obs = observations[:, :30]
                 added_obs = observations[:, 30:35]
                 input = np.concatenate((obs, actions, added_obs))
-
         elif feature_spec == "state_action":
             if env_name == "Reacher-v2":
                 input_dim = 13
