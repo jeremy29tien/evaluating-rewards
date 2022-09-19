@@ -182,8 +182,10 @@ def pearson_distance(
         Computes the Pearson correlation coefficient rho, optionally weighted by dist.
         Returns the square root of 1 minus rho.
     """
-    rewa = rewa.astype(np.float64)
-    rewb = rewb.astype(np.float64)
+    # rewa = rewa.astype(np.float64)
+    # rewb = rewb.astype(np.float64)
+    rewa = rewa.astype(np.longdouble)
+    rewb = rewb.astype(np.longdouble)
 
     if dist is None:
         dist = np.ones_like(rewa) / np.prod(rewa.shape)
