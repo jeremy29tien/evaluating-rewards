@@ -412,7 +412,7 @@ def sample_canon_shaping(
 
     all_obs = np.concatenate((next_obs_samples, batch.obs, batch.next_obs), axis=0)
     unique_obs, unique_inv = np.unique(all_obs, return_inverse=True, axis=0)
-    mean_rews = sample_mean_rews(models, unique_obs, act_samples, next_obs_samples)
+    mean_rews = sample_mean_rews(models, unique_obs, act_samples, next_obs_samples, proper_features=proper_features, hacking_features=hacking_features)
     # print("mean_rews:", mean_rews)
     mean_rews = {k: v[unique_inv] for k, v in mean_rews.items()}
 
