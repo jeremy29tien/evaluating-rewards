@@ -6,6 +6,8 @@ import os
 from typing import Mapping, Tuple, TypeVar
 
 import gym
+import sys
+sys.path.insert(0, '/home/jeremy/evaluating-rewards')
 from gpu_utils import determine_default_torch_device
 from imitation.data import types
 import numpy as np
