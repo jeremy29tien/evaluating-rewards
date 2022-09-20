@@ -36,7 +36,14 @@ DEVICE = None
 # We will always assume that next_obs is in the structure given by get_transition:
 # that is, it will contain the features from the raw obs AND the added features.
 def gt_reward_reacher(action, next_obs):
-    raise Exception("NOT IMPLEMENTED.")
+    distance = next_obs[8:11]
+
+    reward_dist = -np.linalg.norm(distance)
+    reward_ctrl = -np.square(action).sum()
+
+    reward = reward_dist + reward_ctrl
+
+    return reward
 
 
 # We will always assume that next_obs is in the structure given by get_transition:
@@ -502,11 +509,20 @@ def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra
 
 def make_env(env_name, coop=False, seed=1001, reward_net_path=None, indvar=None):
     if not coop and reward_net_path is not None and indvar is not None:
-        env = gym.make('assistive_gym:'+env_name, reward_net_path=reward_net_path, indvar=indvar)
+        if env_name == "Reacher-v2":
+            env = gym.make(env_name, reward_net_path=reward_net_path, indvar=indvar)
+        else:
+            env = gym.make('assistive_gym:'+env_name, reward_net_path=reward_net_path, indvar=indvar)
     elif not coop and reward_net_path is not None:
-        env = gym.make('assistive_gym:' + env_name, reward_net_path=reward_net_path)
+        if env_name == "Reacher-v2":
+            env = gym.make(env_name, reward_net_path=reward_net_path)
+        else:
+            env = gym.make('assistive_gym:' + env_name, reward_net_path=reward_net_path)
     elif not coop:
-        env = gym.make('assistive_gym:'+env_name)
+        if env_name == "Reacher-v2":
+            env = gym.make(env_name)
+        else:
+            env = gym.make('assistive_gym:'+env_name)
     else:
         module = importlib.import_module('assistive_gym.envs')
         env_class = getattr(module, env_name.split('-')[0] + 'Env')
