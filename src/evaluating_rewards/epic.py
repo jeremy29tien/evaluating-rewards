@@ -481,8 +481,8 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
 def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra_configs={}):
     if algo == 'ppo':
         agent = ppo.PPOTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)  # 'assistive_gym:'+env_name
-    elif algo == 'sac':
-        agent = sac.SACTrainer(setup_config(env, algo, coop, seed, extra_configs), 'assistive_gym:'+env_name)  # 'assistive_gym:'+env_name
+    elif algo == 'sac':  # NOTE: We only use SAC for Reacher.
+        agent = sac.SACTrainer(setup_config(env, algo, coop, seed, extra_configs), env_name)
     if policy_path != '':
         if 'checkpoint' in policy_path:
             agent.restore(policy_path)
