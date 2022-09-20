@@ -6,6 +6,7 @@ import os
 from typing import Mapping, Tuple, TypeVar
 
 import gym
+from gym import wrappers
 import sys
 sys.path.insert(0, '/home/jeremy/evaluating-rewards')
 from gpu_utils import determine_default_torch_device
