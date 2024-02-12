@@ -2,7 +2,7 @@ seals @ git+https://github.com/HumanCompatibleAI/seals.git@a425714
 imitation @ git+https://github.com/HumanCompatibleAI/imitation.git@tf-master
 # stable-baselines @ git+https://github.com/hill-a/stable-baselines.git
 sacred @ git+https://github.com/IDSIA/sacred.git@e62bb6
-gym[mujoco]
+# gym[mujoco]
 tabulate
 # Avoid https://github.com/matplotlib/matplotlib/issues/18407
 matplotlib!=3.3.1,!=3.3.0
